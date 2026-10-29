@@ -1,0 +1,15 @@
+# Skin Lesion Classification — Production Dependencies
+# Compatible with local development and Render Linux hosting
+
+Django>=4.2,<5.2
+gunicorn>=21.2.0
+whitenoise>=6.6.0
+Pillow>=10.0
+numpy>=1.24,<2.0; python_version < "3.11"
+numpy>=1.24
+matplotlib>=3.7
+
+# On Linux (Render), install tensorflow-cpu to avoid giant CUDA packages and build timeouts.
+# On Windows/macOS local environments, install tensorflow.
+tensorflow-cpu>=2.13; sys_platform == 'linux'
+tensorflow>=2.13; sys_platform != 'linux'

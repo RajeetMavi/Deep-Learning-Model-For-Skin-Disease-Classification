@@ -1,0 +1,81 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+env.bak/
+venv.bak/
+
+# Django local database & temporary media
+*.sqlite3
+db.sqlite3
+db.sqlite3-journal
+media/
+
+# Static files collected during deployment build (generated on Render)
+staticfiles/
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+*.env
+
+# Operating System & IDE artifacts
+.DS_Store
+Thumbs.db
+ehthumbs.db
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Antigravity / AI Agent artifacts
+.gemini/
+.antigravity/
+
+# HAM10000 Training Dataset (do NOT include raw training datasets in git)
+ham10000/
+dataset/
+data/
+HAM10000_images_part_1/
+HAM10000_images_part_2/
+HAM10000_metadata.csv
+*.csv
+
+# Ensure the trained MobileNetV2 model is tracked in git
+!ml_models/
+!ml_models/ham10000_mobilenetv2.keras
+

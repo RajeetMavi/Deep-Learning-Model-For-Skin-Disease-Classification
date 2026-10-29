@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Analyze Image — Skin Lesion Classification{% endblock %}
+{% block nav_analyze %}active{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Page-specific overrides */
+    .hero { min-height: 20vh; padding: 6rem 0 3rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== PAGE HEADER ===== -->
+<section class="page-hero" aria-labelledby="analyze-heading">
+    <div class="container">
+        <div class="page-hero-content">
+            <div class="page-breadcrumb" aria-label="Breadcrumb">
+                <a href="{% url 'classifier:home' %}">Home</a>
+                <span aria-hidden="true">›</span>
+                <span aria-current="page">Analyze</span>
+            </div>
+            <h1 id="analyze-heading" class="page-title">Analyze Your Image</h1>
+            <p class="page-subtitle">Upload a dermatoscopic skin lesion image and our MobileNetV2 model will classify it across seven HAM10000 categories.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== UPLOAD SECTION ===== -->
+<section class="section" aria-labelledby="upload-heading">
+    <div class="container">
+        <div class="upload-layout">
+
+            <!-- Upload Card -->
+            <div class="upload-card" role="main">
+                <h2 id="upload-heading" class="upload-card-title">Upload Image</h2>
+
+                <!-- Model status banner -->
+                {% if model_error %}
+                <div class="model-error-banner" role="alert">
+                    <span aria-hidden="true">🚫</span>
+                    <div>
+                        <strong>Model Unavailable</strong><br>
+                        The AI model could not be loaded. Please ensure
+                        <code>ml_models/ham10000_mobilenetv2.keras</code> exists and restart the server.
+                        <small style="display:block;margin-top:.35rem;opacity:.75;">{{ model_error }}</small>
+                    </div>
+                </div>
+                {% elif model_loaded %}
+                <div class="model-ready-banner" role="status">
+                    <span aria-hidden="true">✅</span>
+                    <strong>Model ready</strong> — MobileNetV2 (HAM10000) loaded successfully.
+                </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data" id="upload-form" novalidate aria-label="Image upload form">
+                    {% csrf_token %}
+
+                    <!-- Drag-and-Drop Zone -->
+                    <div class="dropzone" id="dropzone" role="button" tabindex="0"
+                         aria-label="Drag and drop image here, or press Enter to browse files"
+                         aria-describedby="dropzone-hint">
+
+                        <div class="dropzone-idle" id="dropzone-idle">
+                            <div class="dropzone-icon" aria-hidden="true">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <p class="dropzone-title">Drop your image here</p>
+                            <p class="dropzone-or" id="dropzone-hint">or</p>
+                            <button type="button" class="btn btn-outline" id="browse-btn" aria-controls="id_image">
+                                Browse Files
+                            </button>
+                            <p class="dropzone-meta">JPG, JPEG, PNG · Max 10 MB</p>
+                        </div>
+
+                        <!-- Preview state (hidden until file selected) -->
+                        <div class="dropzone-preview" id="dropzone-preview" style="display:none;" aria-live="polite">
+                            <img id="preview-img" src="" alt="Preview of selected skin lesion image" />
+                            <div class="preview-info">
+                                <span class="preview-filename" id="preview-filename" aria-label="Selected file"></span>
+                                <span class="preview-size" id="preview-size"></span>
+                            </div>
+                            <button type="button" class="btn btn-ghost btn-sm preview-clear" id="clear-btn" aria-label="Remove selected image">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Hidden file input (triggered by dropzone) -->
+                    <div style="display:none;">
+                        {{ form.image }}
+                    </div>
+
+                    <!-- Form Errors -->
+                    {% if form.image.errors %}
+                    <div class="field-errors" role="alert">
+                        {% for error in form.image.errors %}
+                        <p class="field-error">⚠️ {{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if form.non_field_errors %}
+                    <div class="field-errors" role="alert">
+                        {% for error in form.non_field_errors %}
+                        <p class="field-error">⚠️ {{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Client-side validation error display -->
+                    <div class="field-errors" id="client-error" role="alert" style="display:none;">
+                        <p class="field-error" id="client-error-msg"></p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-full" id="analyze-btn"
+                            aria-label="Analyze the uploaded image"
+                            {% if model_error %}disabled title="Model unavailable — see error above"{% else %}disabled{% endif %}>
+                        <span id="analyze-btn-text">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            Analyze Image
+                        </span>
+                        <span id="analyze-btn-loading" style="display:none;" aria-hidden="true">
+                            <span class="spinner" aria-label="Analyzing…"></span>
+                            Analyzing…
+                        </span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Info Sidebar -->
+            <aside class="upload-sidebar" aria-label="Upload guidelines">
+                <div class="info-card">
+                    <h3 class="info-card-title">
+                        <span aria-hidden="true">📋</span> Guidelines
+                    </h3>
+                    <ul class="info-list" role="list">
+                        <li>Use high-quality dermatoscopic images</li>
+                        <li>Ensure the lesion is centred and clearly visible</li>
+                        <li>Avoid blurry, overexposed, or obstructed images</li>
+                        <li>Accepted: <strong>JPG, JPEG, PNG</strong></li>
+                        <li>Maximum file size: <strong>10 MB</strong></li>
+                    </ul>
+                </div>
+
+                <div class="info-card info-card-warning">
+                    <h3 class="info-card-title">
+                        <span aria-hidden="true">⚠️</span> Important
+                    </h3>
+                    <p>
+                        This tool is for <strong>educational purposes only</strong>.
+                        Results are experimental model outputs and must not be interpreted
+                        as a medical diagnosis.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3 class="info-card-title">
+                        <span aria-hidden="true">🔒</span> Privacy
+                    </h3>
+                    <p>
+                        Uploaded images are processed in memory and are not permanently
+                        stored on our servers. No personal data is collected.
+                    </p>
+                </div>
+            </aside>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/upload.js' %}"></script>
+{% endblock %}

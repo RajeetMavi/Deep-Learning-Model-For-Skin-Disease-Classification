@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Results — Skin Lesion Classification" }}{% endblock %}
+{% block nav_analyze %}active{% endblock %}
+
+{% block content %}
+
+<!-- ===== PAGE HEADER ===== -->
+<section class="page-hero" aria-labelledby="results-heading">
+    <div class="container">
+        <div class="page-hero-content">
+            <div class="page-breadcrumb" aria-label="Breadcrumb">
+                <a href="{% url 'classifier:home' %}">Home</a>
+                <span aria-hidden="true">›</span>
+                <a href="{% url 'classifier:analyze' %}">Analyze</a>
+                <span aria-hidden="true">›</span>
+                <span aria-current="page">Results</span>
+            </div>
+            <h1 id="results-heading" class="page-title">Analysis Results</h1>
+            <p class="page-subtitle">AI-generated probability scores across all seven HAM10000 categories with Grad-CAM visual explainability.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== RESULTS SECTION ===== -->
+<section class="section" aria-labelledby="results-heading">
+    <div class="container">
+
+        {% if result.is_mock %}
+        <div class="mock-banner" role="status" aria-live="polite">
+            <span aria-hidden="true">🔧</span>
+            <strong>Phase 1 — Mock Mode:</strong> These are randomly generated example results.
+            Real model predictions will be available in Phase 2.
+        </div>
+        {% endif %}
+
+        <!-- ===== TOP PREDICTION & ALL PROBABILITIES ROW ===== -->
+        <div class="results-layout">
+
+            <!-- Left Column: Top Prediction -->
+            <div class="results-left">
+
+                <!-- Top Prediction Card -->
+                <div class="top-prediction-card risk-card-{{ result.predicted_risk }}">
+                    <div class="top-pred-header">
+                        <span class="top-pred-label">Top Prediction</span>
+                        <span class="risk-badge risk-badge-{{ result.predicted_risk }}" aria-label="Risk level: {{ result.predicted_risk }}">
+                            {{ result.predicted_risk|capfirst }} Risk
+                        </span>
+                    </div>
+                    <div class="top-pred-class">
+                        <span class="top-pred-code" aria-label="Category code">{{ result.predicted_class|upper }}</span>
+                        <h2 class="top-pred-name">{{ result.predicted_short }}</h2>
+                    </div>
+                    <div class="top-pred-prob">
+                        <div class="prob-circle" role="img" aria-label="Predicted probability {{ result.predicted_prob_pct }} percent">
+                            <svg class="prob-circle-svg" viewBox="0 0 120 120" aria-hidden="true">
+                                <circle class="prob-circle-bg" cx="60" cy="60" r="50"/>
+                                <circle class="prob-circle-fill" cx="60" cy="60" r="50"
+                                        stroke-dasharray="314"
+                                        stroke-dashoffset="{{ 314|add:'-'|add:result.predicted_prob_pct|floatformat:0 }}"
+                                        data-prob="{{ result.predicted_prob_pct }}" />
+                            </svg>
+                            <div class="prob-circle-text">
+                                <span class="prob-value">{{ result.predicted_prob_pct }}%</span>
+                                <span class="prob-label">confidence</span>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="top-pred-desc">{{ result.predicted_description }}</p>
+                </div>
+
+            </div>
+
+            <!-- Right Column: All Probabilities -->
+            <div class="results-right">
+                <h2 class="result-section-title">All Class Probabilities</h2>
+                <p class="result-section-subtitle">Sorted by probability (highest first)</p>
+
+                <div class="prob-list" role="list" aria-label="Probability scores for all seven categories">
+                    {% for item in result.all_probabilities %}
+                    <div class="prob-item {% if forloop.first %}prob-item-top{% endif %}" role="listitem"
+                         aria-label="{{ item.label }}: {{ item.probability_pct }} percent">
+                        <div class="prob-item-header">
+                            <div class="prob-item-info">
+                                <span class="prob-item-code">{{ item.code|upper }}</span>
+                                <span class="prob-item-name">{{ item.short }}</span>
+                                {% if forloop.first %}
+                                <span class="prob-item-badge">Top Match</span>
+                                {% endif %}
+                            </div>
+                            <div class="prob-item-right">
+                                <span class="risk-dot risk-dot-{{ item.risk_level }}" aria-hidden="true"></span>
+                                <span class="prob-item-pct" aria-hidden="true">{{ item.probability_pct }}%</span>
+                            </div>
+                        </div>
+                        <div class="prob-bar-track" role="progressbar"
+                             aria-valuenow="{{ item.probability_pct }}"
+                             aria-valuemin="0" aria-valuemax="100"
+                             aria-label="{{ item.probability_pct }} percent">
+                            <div class="prob-bar-fill risk-bar-{{ item.risk_level }}"
+                                 style="width: 0%"
+                                 data-width="{{ item.probability_pct }}"></div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Risk Legend -->
+                <div class="risk-legend" aria-label="Risk level legend">
+                    <span class="legend-title">Risk levels:</span>
+                    <span class="legend-item"><span class="risk-dot risk-dot-low" aria-hidden="true"></span> Low</span>
+                    <span class="legend-item"><span class="risk-dot risk-dot-high" aria-hidden="true"></span> High</span>
+                    <span class="legend-item"><span class="risk-dot risk-dot-critical" aria-hidden="true"></span> Critical</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== GRAD-CAM EXPLAINABILITY SECTION ===== -->
+        <section class="gradcam-section" aria-labelledby="gradcam-main-heading">
+            <div class="gradcam-header-row">
+                <div>
+                    <div class="gradcam-badge-tag">Model Interpretability</div>
+                    <h2 id="gradcam-main-heading" class="gradcam-heading">Grad-CAM Visual Explanations</h2>
+                    <p class="gradcam-subheading">
+                        Gradient-weighted Class Activation Mapping for predicted class:
+                        <strong>{{ result.predicted_short }}</strong> ({{ result.predicted_prob_pct }}%)
+                    </p>
+                </div>
+                <div class="gradcam-meta-badge" title="Conv layer used for gradient backpropagation">
+                    <span class="meta-dot" aria-hidden="true"></span>
+                    <span>Target Layer: <code>{{ gradcam.target_layer|default:'Conv_1' }}</code></span>
+                </div>
+            </div>
+
+            {% if gradcam.success %}
+            <!-- 3-Panel Visual Comparison Gallery -->
+            <div class="gradcam-gallery" role="region" aria-label="Grad-CAM Image Gallery">
+
+                <!-- 1. Original Image Card -->
+                <div class="gradcam-card" id="card-original">
+                    <div class="gradcam-card-header">
+                        <span class="gradcam-card-tag">Panel 1</span>
+                        <h3 class="gradcam-card-title">Original Image</h3>
+                    </div>
+                    <div class="gradcam-image-wrapper">
+                        {% if image_data_url %}
+                        <img src="{{ image_data_url }}" alt="Original uploaded skin lesion image" class="gradcam-img" />
+                        {% else %}
+                        <div class="gradcam-placeholder">Image not available</div>
+                        {% endif %}
+                    </div>
+                    <div class="gradcam-card-footer">
+                        <span class="dim-badge">{{ gradcam.original_dimensions.0 }} × {{ gradcam.original_dimensions.1 }} px</span>
+                        <span class="footer-caption">Uploaded input</span>
+                    </div>
+                </div>
+
+                <!-- 2. Grad-CAM Heatmap Card -->
+                <div class="gradcam-card" id="card-heatmap">
+                    <div class="gradcam-card-header">
+                        <span class="gradcam-card-tag">Panel 2</span>
+                        <h3 class="gradcam-card-title">Grad-CAM Heatmap</h3>
+                    </div>
+                    <div class="gradcam-image-wrapper">
+                        <img src="{{ gradcam.heatmap_data_url }}" alt="Grad-CAM activation heatmap for {{ result.predicted_short }}" class="gradcam-img" />
+                    </div>
+                    <!-- Colormap Bar Legend -->
+                    <div class="colormap-legend" aria-label="Heatmap activation intensity scale">
+                        <div class="colormap-bar" aria-hidden="true"></div>
+                        <div class="colormap-labels">
+                            <span>Low (0.0)</span>
+                            <span>Model Contribution</span>
+                            <span>High (1.0)</span>
+                        </div>
+                    </div>
+                    <div class="gradcam-card-footer">
+                        <span class="dim-badge">{{ gradcam.heatmap_dimensions.0 }} × {{ gradcam.heatmap_dimensions.1 }} px</span>
+                        <span class="footer-caption">Jet colormap</span>
+                    </div>
+                </div>
+
+                <!-- 3. Heatmap Overlay Card (with Interactive Transparency) -->
+                <div class="gradcam-card" id="card-overlay">
+                    <div class="gradcam-card-header">
+                        <span class="gradcam-card-tag">Panel 3</span>
+                        <h3 class="gradcam-card-title">Heatmap Overlay</h3>
+                    </div>
+                    <div class="gradcam-image-wrapper overlay-wrapper" id="overlay-container">
+                        {% if image_data_url %}
+                        <img src="{{ image_data_url }}" alt="Original lesion under overlay" class="overlay-img-base" />
+                        {% endif %}
+                        <img src="{{ gradcam.heatmap_data_url }}" alt="Heatmap layer superimposed on original image" class="overlay-img-heatmap" id="gradcam-heatmap-layer" style="opacity: 0.5;" />
+                    </div>
+
+                    <!-- Interactive Transparency Slider Controls -->
+                    <div class="gradcam-transparency-control">
+                        <div class="transparency-label-row">
+                            <label for="transparency-slider" class="transparency-label">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20z"/></svg>
+                                Overlay Transparency:
+                            </label>
+                            <span class="opacity-value-badge" id="opacity-value-badge">50%</span>
+                        </div>
+                        <input type="range" id="transparency-slider" min="0" max="100" value="50" class="transparency-range-input" aria-label="Heatmap overlay transparency percentage" />
+                        <div class="transparency-presets" role="group" aria-label="Transparency presets">
+                            <button type="button" class="preset-btn" data-value="0">0% (Image)</button>
+                            <button type="button" class="preset-btn active" data-value="50">50% Blend</button>
+                            <button type="button" class="preset-btn" data-value="75">75% Strong</button>
+                            <button type="button" class="preset-btn" data-value="100">100% Heatmap</button>
+                        </div>
+                    </div>
+
+                    <div class="gradcam-card-footer">
+                        <span class="dim-badge">{{ gradcam.overlay_dimensions.0 }} × {{ gradcam.overlay_dimensions.1 }} px</span>
+                        <span class="footer-caption">Adjust slider to blend</span>
+                    </div>
+                </div>
+
+            </div>
+
+            {% else %}
+            <!-- Graceful Fallback if Grad-CAM encountered an error -->
+            <div class="gradcam-fallback-card" role="status">
+                <span class="fallback-icon" aria-hidden="true">⚠️</span>
+                <div class="fallback-content">
+                    <h3 class="fallback-title">Grad-CAM Visualization Temporarily Unavailable</h3>
+                    <p class="fallback-desc">
+                        {{ gradcam.error|default:"Gradient extraction could not be completed for this image." }}
+                    </p>
+                    <p class="fallback-note">
+                        Your classification predictions and probability scores above are fully functional and unaffected.
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Educational Explanation & Clinical Disclaimer Card -->
+            <div class="gradcam-explanation-card" role="note" aria-labelledby="gradcam-expl-title">
+                <div class="gradcam-expl-header">
+                    <span class="gradcam-expl-icon" aria-hidden="true">💡</span>
+                    <div>
+                        <h3 id="gradcam-expl-title" class="gradcam-expl-heading">Understanding the Visual Explanation</h3>
+                        <p class="gradcam-expl-subheading">How to interpret Grad-CAM heatmaps for skin lesion classification</p>
+                    </div>
+                </div>
+                <div class="gradcam-expl-body">
+                    <p>
+                        The <strong>Grad-CAM (Gradient-weighted Class Activation Mapping)</strong> visualization above reveals which visual regions within the image most strongly guided the model toward predicting <strong>{{ result.predicted_short }}</strong> ({{ result.predicted_prob_pct }}%).
+                    </p>
+                    <p>
+                        By computing gradients of the predicted class score with respect to the final convolutional feature maps (<code>{{ gradcam.target_layer|default:'Conv_1' }}</code> in MobileNetV2), Grad-CAM calculates importance weights for each spatial feature:
+                    </p>
+                    <ul class="gradcam-expl-bullets">
+                        <li><strong>Warm colors (red, orange, yellow):</strong> Highlight areas containing features that contributed most heavily and positively to the model's classification.</li>
+                        <li><strong>Cool colors (cyan, blue):</strong> Indicate areas that had little to no positive influence on the selected prediction.</li>
+                    </ul>
+                    <div class="gradcam-notice-box">
+                        <span class="notice-icon" aria-hidden="true">⚠️</span>
+                        <div>
+                            <strong>Important Medical Notice:</strong> Highlighted regions indicate visual areas contributing to the model's prediction based on learned training patterns—they are <strong>not a definitive explanation or confirmation of a medical condition</strong>. This is an educational prototype and must not be used for diagnosis or clinical decision-making. Always consult a qualified dermatologist for skin examinations.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Actions Row -->
+        <div class="results-actions">
+            <a href="{% url 'classifier:analyze' %}" class="btn btn-primary btn-lg" id="analyze-another-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Analyze Another Image
+            </a>
+            <a href="{% url 'classifier:home' %}" class="btn btn-ghost btn-lg">
+                ← Back to Home
+            </a>
+        </div>
+
+        <!-- Results Disclaimer -->
+        <div class="results-disclaimer" role="note" aria-label="Results disclaimer">
+            <span aria-hidden="true">⚠️</span>
+            <div>
+                <strong>This is not a medical diagnosis.</strong>
+                The probabilities shown above are raw model outputs and reflect the model's learned patterns
+                on the HAM10000 training dataset. They are experimental, may contain errors, and
+                <strong>must not be used to make any treatment or medical decisions</strong>.
+                Please consult a qualified dermatologist for any skin health concerns.
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'js/results.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Skin Lesion Classification — AI-Powered Dermatology Tool{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO SECTION ===== -->
+<section class="hero" aria-labelledby="hero-heading">
+    <div class="hero-bg-grid" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-3" aria-hidden="true"></div>
+
+    <div class="hero-container">
+        <div class="hero-badge" role="img" aria-label="AI-Powered tool">
+            <span>🧬</span> AI-Powered · HAM10000 · MobileNetV2
+        </div>
+        <h1 class="hero-title" id="hero-heading">
+            Skin Disease<br />
+            <span class="hero-title-accent">Classification</span>
+        </h1>
+        <p class="hero-subtitle">
+            Upload a dermatoscopic image and our MobileNetV2 deep learning model
+            will analyse it across seven clinical categories — instantly.
+        </p>
+
+        <div class="hero-actions">
+            <a href="{% url 'classifier:analyze' %}" class="btn btn-primary btn-lg" id="hero-cta-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Analyze an Image
+            </a>
+            <a href="#how-it-works" class="btn btn-ghost btn-lg">
+                Learn How It Works
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    aria-hidden="true">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                </svg>
+            </a>
+        </div>
+
+        <div class="hero-stats" role="list" aria-label="Model statistics">
+            <div class="hero-stat" role="listitem">
+                <span class="hero-stat-value">7</span>
+                <span class="hero-stat-label">Disease Classes</span>
+            </div>
+            <div class="hero-stat-divider" aria-hidden="true"></div>
+            <div class="hero-stat" role="listitem">
+                <span class="hero-stat-value">128×128</span>
+                <span class="hero-stat-label">Input Resolution</span>
+            </div>
+            <div class="hero-stat-divider" aria-hidden="true"></div>
+            <div class="hero-stat" role="listitem">
+                <span class="hero-stat-value">MV2</span>
+                <span class="hero-stat-label">Architecture</span>
+            </div>
+            <div class="hero-stat-divider" aria-hidden="true"></div>
+            <div class="hero-stat" role="listitem">
+                <span class="hero-stat-value">10k+</span>
+                <span class="hero-stat-label">Training Images</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero image / illustration -->
+    <div class="hero-visual" aria-hidden="true">
+        <div class="hero-visual-card">
+            <div class="hero-visual-scan"></div>
+            <div class="hero-visual-bars">
+                <div class="hv-bar" style="width:82%"><span>Melanocytic Nevi</span><span>82%</span></div>
+                <div class="hv-bar" style="width:9%"><span>Melanoma</span><span>9%</span></div>
+                <div class="hv-bar" style="width:5%"><span>BCC</span><span>5%</span></div>
+                <div class="hv-bar" style="width:2%"><span>Actinic Ker.</span><span>2%</span></div>
+                <div class="hv-bar" style="width:1%"><span>Others</span><span>2%</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== DISCLAIMER BANNER ===== -->
+<section class="disclaimer-banner" role="complementary" aria-label="Medical disclaimer">
+    <div class="container">
+        <div class="disclaimer-inner">
+            <span class="disclaimer-icon" aria-hidden="true">⚠️</span>
+            <p>
+                <strong>Medical Disclaimer:</strong> This website is an educational AI/ML prototype developed for
+                academic purposes.
+                Its predictions are <strong>not a medical diagnosis</strong> and must not be used to make treatment
+                decisions.
+                Consult a qualified dermatologist for medical concerns.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="section" id="how-it-works" aria-labelledby="how-heading">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Process</span>
+            <h2 class="section-title" id="how-heading">How It Works</h2>
+            <p class="section-subtitle">Three simple steps from image to insight</p>
+        </div>
+
+        <div class="steps-grid" role="list">
+            <div class="step-card" role="listitem">
+                <div class="step-number" aria-hidden="true">01</div>
+                <div class="step-icon" aria-hidden="true">📷</div>
+                <h3 class="step-title">Upload Your Image</h3>
+                <p class="step-desc">
+                    Drag and drop or browse to select a JPG or PNG dermatoscopic image.
+                    The system validates file type and size before proceeding.
+                </p>
+            </div>
+            <div class="step-connector" aria-hidden="true"></div>
+
+            <div class="step-card" role="listitem">
+                <div class="step-number" aria-hidden="true">02</div>
+                <div class="step-icon" aria-hidden="true">🧠</div>
+                <h3 class="step-title">AI Analysis</h3>
+                <p class="step-desc">
+                    The image is pre-processed and fed into our MobileNetV2 model trained on HAM10000.
+                    The model outputs probability scores across all seven categories.
+                </p>
+            </div>
+            <div class="step-connector" aria-hidden="true"></div>
+
+            <div class="step-card" role="listitem">
+                <div class="step-number" aria-hidden="true">03</div>
+                <div class="step-icon" aria-hidden="true">📊</div>
+                <h3 class="step-title">View Results</h3>
+                <p class="step-desc">
+                    See the predicted class and probability scores for all seven categories
+                    displayed with interactive progress bars and detailed descriptions.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CATEGORIES ===== -->
+<section class="section section-alt" id="categories" aria-labelledby="cat-heading">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-tag">Classification</span>
+            <h2 class="section-title" id="cat-heading">Seven HAM10000 Categories</h2>
+            <p class="section-subtitle">The model classifies lesions into one of these seven clinically significant
+                categories</p>
+        </div>
+
+        <div class="categories-grid" role="list">
+            {% for code, info in class_info.items %}
+            <article class="category-card risk-{{ info.risk_level }}" role="listitem" aria-label="{{ info.name }}">
+                <div class="category-card-header">
+                    <span class="category-code" aria-label="Category code">{{ code|upper }}</span>
+                    <span class="category-risk risk-badge-{{ info.risk_level }}"
+                        aria-label="Risk level: {{ info.risk_level }}">
+                        {{ info.risk_level|capfirst }}
+                    </span>
+                </div>
+                <h3 class="category-name">{{ info.short }}</h3>
+                <p class="category-desc">{{ info.description }}</p>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA SECTION ===== -->
+<section class="section cta-section" aria-labelledby="cta-heading">
+    <div class="container">
+        <div class="cta-card">
+            <div class="cta-orb" aria-hidden="true"></div>
+            <h2 class="cta-title" id="cta-heading">Ready to Analyze a Lesion?</h2>
+            <p class="cta-subtitle">
+                Upload a dermatoscopic image and get an AI-generated probability breakdown in seconds.
+            </p>
+            <a href="{% url 'classifier:analyze' %}" class="btn btn-primary btn-lg" id="cta-bottom-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Start Analysis
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
